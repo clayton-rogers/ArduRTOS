@@ -39,7 +39,7 @@ size_t get_next_task() {
 }
 
 
-// ========== TAKSS ==========//
+// ========== TASKS ==========//
 int flash_led_task () {
   static bool is_on = false;
 
@@ -51,7 +51,7 @@ int flash_led_task () {
     digitalWrite(LED_BUILTIN, HIGH);
   }
 
-  return 100;
+  return 987;
 }
 
 
@@ -88,18 +88,19 @@ void loop() {
 
     // === Block until the right time ===
     long current_time;
-    // Delay
+    // Delay until t - (2 .. 0.9 milliseconds)
     while (next_time-2 > (current_time = millis())) {}
-    long delay_micro = 2000 - micros() % 2000;
+    long delay_micro = 2000 - (micros() % 2000);
     delayMicroseconds(delay_micro-42); // 44 is an experimentally defined correction factor.
     long begin_time = micros();
 
-
-
-    task_list.last_run[next_task] = current_time;
+    // === Run the user code ===
+    task_list.last_run[next_task] = task_list.next_run[next_task];
     long delta_time = task_list.callback[next_task]();
     task_list.next_run[next_task] += delta_time;
     long end_time = micros();
+
+    // === Print debug timing ===
 #if defined(DEBUG)
     Serial.println(begin_time);
     Serial.println(end_time);
