@@ -88,6 +88,35 @@ int double_flash_led_task() {
   return 0; // Should never reach
 }
 
+int error_list[4] = {0};
+int error_index = 0;
+
+void add_error(long error_time) {
+  if (error_index++ % 10 == 0) {
+    String es = "Error results: ";
+    for (int i = 0; i < 4; ++i) {
+      es += error_list[i];
+      es += " ";
+      error_list[i] = 0;
+    }
+    Serial.println(es);
+  }
+  switch (error_time) {
+    case 0:
+      error_list[0]++;
+      break;
+    case 4:
+      error_list[1]++;
+      break;
+    case -4:
+      error_list[2]++;
+      break;
+    default:
+      error_list[3]++;
+      break;
+  }
+}
+
 
 // ========== MAIN ========== //
 void setup() {
@@ -131,6 +160,7 @@ void loop() {
   }
   time_t begin_time = micros();
   time_t error = begin_time - (next_time*1000);
+  add_error(error);
 
   // === Run the user code ===
   task_list.last_run[next_task] = task_list.next_run[next_task];
@@ -139,8 +169,8 @@ void loop() {
   time_t end_time = micros();
 
   // === Print debug timing ===
-  Serial.println(error);
 #if defined(DEBUG)
+  Serial.println(error);
   Serial.println(begin_time);
   Serial.println(end_time);
 #endif
