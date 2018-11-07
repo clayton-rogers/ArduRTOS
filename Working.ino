@@ -61,7 +61,7 @@ void setup() {
   Serial.begin(9600);
 
   Serial.println("Hello world");
-  
+
 
   pinMode(LED_BUILTIN, OUTPUT);
 
@@ -72,40 +72,38 @@ void setup() {
 
 void loop() {
 
-  while (true) {
-    // === Get the next task's information ===
-    size_t next_task = get_next_task();
-    String output = "Next_task: ";
-    output += next_task;
+  // === Get the next task's information ===
+  size_t next_task = get_next_task();
+  String output = "Next_task: ";
+  output += next_task;
 #if defined(DEBUG)
-    Serial.println(output);
+  Serial.println(output);
 #endif
-    time_t next_time = task_list.next_run[next_task];
-    output = "Next_time: ";
-    output += next_time;
+  time_t next_time = task_list.next_run[next_task];
+  output = "Next_time: ";
+  output += next_time;
 #if defined(DEBUG)
-    Serial.println(output);
+  Serial.println(output);
 #endif
 
-    // === Block until the right time ===
-    time_t current_time;
-    // Delay until t - (2 .. 0.9 milliseconds)
-    while (next_time-2 > (current_time = millis())) {}
-    time_t delay_micro = 2000 - (micros() % 2000);
-    delayMicroseconds(delay_micro-42); // 44 is an experimentally defined correction factor.
-    time_t begin_time = micros();
+  // === Block until the right time ===
+  time_t current_time;
+  // Delay until t - (2 .. 0.9 milliseconds)
+  while (next_time - 2 > (current_time = millis())) {}
+  time_t delay_micro = 2000 - (micros() % 2000);
+  delayMicroseconds(delay_micro - 42); // 44 is an experimentally defined correction factor.
+  time_t begin_time = micros();
 
-    // === Run the user code ===
-    task_list.last_run[next_task] = task_list.next_run[next_task];
-    time_t delta_time = task_list.callback[next_task]();
-    task_list.next_run[next_task] += delta_time;
-    time_t end_time = micros();
+  // === Run the user code ===
+  task_list.last_run[next_task] = task_list.next_run[next_task];
+  time_t delta_time = task_list.callback[next_task]();
+  task_list.next_run[next_task] += delta_time;
+  time_t end_time = micros();
 
-    // === Print debug timing ===
+  // === Print debug timing ===
 #if defined(DEBUG)
-    Serial.println(begin_time);
-    Serial.println(end_time);
+  Serial.println(begin_time);
+  Serial.println(end_time);
 #endif
-  }
 
 }
