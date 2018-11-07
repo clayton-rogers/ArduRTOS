@@ -11,17 +11,6 @@ struct {
   byte end_of_task_list = 0;
   time_t last_run[NUM_T] = {0};
   time_t next_run[NUM_T] = {0};
-
-  void print() {
-#if defined(DEBUG)
-    Serial.println("==BEGIN==");
-    Serial.println((long) callback[0]);
-    Serial.println(end_of_task_list);
-    Serial.println(last_run[0]);
-    Serial.println(next_run[0]);
-    Serial.println("== END ==");
-#endif
-  }
 } task_list;
 
 void add_task (Function_t function, const char* const task_name) {
@@ -64,7 +53,8 @@ int flash_led_task () {
     digitalWrite(LED_BUILTIN, HIGH);
   }
 
-  return 900;
+  //return 123;
+  return 987;
   //return 14805; // Used to be an issue, would lose 15.500 milliseconds
 }
 
@@ -101,8 +91,8 @@ int double_flash_led_task() {
 
 // ========== MAIN ========== //
 void setup() {
-#if defined(DEBUG)
   Serial.begin(9600);
+#if defined(DEBUG)
   Serial.println("Hello world");
 #endif
 
@@ -111,8 +101,6 @@ void setup() {
   // Add all the tasks (in order of priority)
   add_task(&double_flash_led_task, "Double");
   add_task(&flash_led_task, "Single");
-
-  task_list.print();
 }
 
 void loop() {
@@ -133,17 +121,16 @@ void loop() {
 
   // === Block until the right time ===
   // Delay until t - (2 .. 0.9 milliseconds)
+  long next_time_last_digit = next_time %10;
   while (next_time-2 > long(millis())) {}
-  // Delay till the top of the millisecond
-  time_t delay_micro_1 = 1000 - (micros() % 1000);
-  delayMicroseconds(delay_micro_1);
-  time_t delay_micro_2 = 0;
-  if (next_time > millis()) {
-    // Delay till the top of the millisecond (again)
-    delay_micro_2 = 1000 - (micros() % 1000);
-    delayMicroseconds(delay_micro_2-40);
+  while (next_time_last_digit != ((micros() + 100) / 1000) % 10) {
+    // Delay till the top of the millisecond
+    time_t delay_micro = 1000 - (micros() % 1000) - 124;
+    delay_micro = max(delay_micro, 0);
+    delayMicroseconds(delay_micro);
   }
   time_t begin_time = micros();
+  time_t error = begin_time - (next_time*1000);
 
   // === Run the user code ===
   task_list.last_run[next_task] = task_list.next_run[next_task];
@@ -152,9 +139,8 @@ void loop() {
   time_t end_time = micros();
 
   // === Print debug timing ===
+  Serial.println(error);
 #if defined(DEBUG)
-  Serial.println(delay_micro_1);
-  Serial.println(delay_micro_2);
   Serial.println(begin_time);
   Serial.println(end_time);
 #endif
