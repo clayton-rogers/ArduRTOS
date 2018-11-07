@@ -1,5 +1,5 @@
 // ========== TASK LIST ========== //
-#define DEBUG
+//#define DEBUG
 
 typedef int(*Function_t)();
 typedef long time_t; // time type should really be unsigned, but then you get lots of problems....
@@ -13,12 +13,14 @@ struct {
   time_t next_run[NUM_T] = {0};
 
   void print() {
+#if defined(DEBUG)
     Serial.println("==BEGIN==");
     Serial.println((long) callback[0]);
     Serial.println(end_of_task_list);
     Serial.println(last_run[0]);
     Serial.println(next_run[0]);
     Serial.println("== END ==");
+#endif
   }
 } task_list;
 
@@ -41,7 +43,9 @@ size_t get_next_task() {
   }
 
   if (next_task == -1) {
+#if defined(DEBUG)
     Serial.println(F("ERROR: Could not find a task to run!!!!"));
+#endif
     delay(100000);
   }
   return next_task;
@@ -97,9 +101,10 @@ int double_flash_led_task() {
 
 // ========== MAIN ========== //
 void setup() {
+#if defined(DEBUG)
   Serial.begin(9600);
-
   Serial.println("Hello world");
+#endif
 
   pinMode(LED_BUILTIN, OUTPUT);
 
