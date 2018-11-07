@@ -2,13 +2,14 @@
 #define DEBUG
 
 typedef int(*Function_t)();
+typedef long time_t; // time type should really be unsigned, but then you get lots of problems....
 
 const size_t NUM_T = 10;
 struct {
   Function_t callback[NUM_T];
   byte end_of_task_list = 0;
-  long last_run[NUM_T] = {0};
-  long next_run[NUM_T] = {0};
+  time_t last_run[NUM_T] = {0};
+  time_t next_run[NUM_T] = {0};
 
   void print() {
     Serial.println("==BEGIN==");
@@ -26,7 +27,7 @@ void add_task (Function_t function) {
 
 size_t get_next_task() {
   size_t next_task = -1;
-  long next_time = -1;
+  time_t next_time = -1;
 
   for (int i = task_list.end_of_task_list - 1; i >= 0; --i) {
     if (task_list.next_run[i] > next_time) {
@@ -79,7 +80,7 @@ void loop() {
 #if defined(DEBUG)
     Serial.println(output);
 #endif
-    long next_time = task_list.next_run[next_task];
+    time_t next_time = task_list.next_run[next_task];
     output = "Next_time: ";
     output += next_time;
 #if defined(DEBUG)
@@ -87,18 +88,18 @@ void loop() {
 #endif
 
     // === Block until the right time ===
-    long current_time;
+    time_t current_time;
     // Delay until t - (2 .. 0.9 milliseconds)
     while (next_time-2 > (current_time = millis())) {}
-    long delay_micro = 2000 - (micros() % 2000);
+    time_t delay_micro = 2000 - (micros() % 2000);
     delayMicroseconds(delay_micro-42); // 44 is an experimentally defined correction factor.
-    long begin_time = micros();
+    time_t begin_time = micros();
 
     // === Run the user code ===
     task_list.last_run[next_task] = task_list.next_run[next_task];
-    long delta_time = task_list.callback[next_task]();
+    time_t delta_time = task_list.callback[next_task]();
     task_list.next_run[next_task] += delta_time;
-    long end_time = micros();
+    time_t end_time = micros();
 
     // === Print debug timing ===
 #if defined(DEBUG)
