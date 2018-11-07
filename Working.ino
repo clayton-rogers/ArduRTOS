@@ -72,6 +72,7 @@ void setup() {
 void loop() {
 
   while (true) {
+    // === Get the next task's information ===
     size_t next_task = get_next_task();
     String output = "Next_task: ";
     output += next_task;
@@ -85,19 +86,24 @@ void loop() {
     Serial.println(output);
 #endif
 
-    // Block until the right time
+    // === Block until the right time ===
     long current_time;
-    while (next_time > (current_time = millis())) {}
-    output = "Current_time: ";
-    output += micros();
-#if defined(DEBUG)
-    Serial.println(output);
-#endif
+    // Delay
+    while (next_time-2 > (current_time = millis())) {}
+    long delay_micro = 2000 - micros() % 2000;
+    delayMicroseconds(delay_micro-42); // 44 is an experimentally defined correction factor.
+    long begin_time = micros();
+
 
 
     task_list.last_run[next_task] = current_time;
     long delta_time = task_list.callback[next_task]();
     task_list.next_run[next_task] += delta_time;
+    long end_time = micros();
+#if defined(DEBUG)
+    Serial.println(begin_time);
+    Serial.println(end_time);
+#endif
   }
 
 }
